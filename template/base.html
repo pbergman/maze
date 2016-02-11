@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>Maze Solver</title>
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+    <!-- Optional theme -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css" integrity="sha384-fLW2N01lMqjakBkx3l/M9EahuwpSfeNvV63J5ezn3uZzapT0u7EYsXMjQV+0En5r" crossorigin="anonymous">
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script></head>
+<body>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-4">
+                {{range $id, $maze := .Mazes }}
+                   <a href="/show/{{ $id }}">{{ $id }}</a><br>
+                {{end}}
+            </div>
+            <div class="col-md-8">
+
+                <form method="post">
+                    <div class="row">
+                        <h3>Dimensions</h3>
+                        <div class="form-group col-md-3">
+                            <label for="height">Height</label>
+                            <input type="number" class="form-control" id="height" placeholder="Height" required name="height">
+                        </div>
+                        <div class="form-group col-md-3">
+                            <label for="width">Width</label>
+                            <input type="number" class="form-control" id="width" placeholder="Width" required name="width">
+                        </div>
+                        <div class="form-group col-md-2">
+                            <label for="ratio">Pixel ratio</label>
+                            <input type="number" class="form-control" id="ratio" placeholder="Pixel ratio" required value="1" name="ratio">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <h3>Border color</h3>
+                        <div class="form-group col-md-2">
+                            <label for="br">red</label>
+                            <input type="number" class="form-control" id="br" placeholder="red" required value="0" name="br">
+                        </div>
+                        <div class="form-group col-md-2">
+                            <label for="bg">green</label>
+                            <input type="number" class="form-control" id="bg" placeholder="green" required value="0" name="bg">
+                        </div>
+                        <div class="form-group col-md-2">
+                            <label for="bb">blue</label>
+                            <input type="number" class="form-control" id="bb" placeholder="blue" required value="0" name="bb">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <h3>Path color</h3>
+                        <div class="form-group col-md-2">
+                            <label for="pr">red</label>
+                            <input type="number" class="form-control" id="pr" placeholder="red" required value="255" name="pr">
+                        </div>
+                        <div class="form-group col-md-2">
+                            <label for="pg">green</label>
+                            <input type="number" class="form-control" id="pg" placeholder="green" required value="255" name="pg">
+                        </div>
+                        <div class="form-group col-md-2">
+                            <label for="pb">blue</label>
+                            <input type="number" class="form-control" id="pb" placeholder="blue" required value="255" name="pb">
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-default">Submit</button>
+                </form>
+
+            </div>
+
+        </div>
+
+        HELLO
+    </div>
+</body>
+</html>
