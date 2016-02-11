@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"html/template"
 	"regexp"
+	"image/gif"
 )
 
 
@@ -53,8 +54,9 @@ func main() {
 		walker.ToFile(o)
 	} else {
 
-		mazes := make(map[int64]*builder.MazeImageBuilder, 0)
-		show  := regexp.MustCompile("^/show/(\\d+)$")
+		mazes := make(map[int64]*builder.MazeImageMatrix, 0)
+		show  := regexp.MustCompile(`^/show/(\d+)$`)
+		solved  := regexp.MustCompile(`^/solved/(\d+)$`)
 
 		http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 
@@ -74,15 +76,29 @@ func main() {
 				maze.SetRatio(uint(a))
 				maze.SetPathColor(byte(pr), byte(pg), byte(pb))
 				maze.SetWallColor(byte(br), byte(bg), byte(bb))
-				mazes[time.Now().UnixNano()] = maze
+				matrix, _ := maze.GetMatrix()
+				mazes[time.Now().UnixNano()] = matrix
 			}
 
 			if r.Method == "GET" && show.MatchString(r.URL.String()) {
-				log.Println(show.FindAllString(r.URL.String(), -1))
+
+				id, _ := strconv.Atoi(show.FindStringSubmatch(r.URL.String())[1])
+				if m, o := mazes[int64(id)]; o {
+					gif.Encode(w, m.DrawImage(), &gif.Options{NumColors: 256})
+				}
+			}
+
+			if r.Method == "GET" && solved.MatchString(r.URL.String()) {
+				id, _ := strconv.Atoi(solved.FindStringSubmatch(r.URL.String())[1])
+				if m, o := mazes[int64(id)]; o {
+					walker := solver.NewWalker(m)
+					walker.Solve()
+					gif.Encode(w, walker.DrawImage(), &gif.Options{NumColors: 256})
+				}
 			}
 
 			t, _ := template.ParseFiles("template/base.html")
-			t.Execute(w, struct{Mazes map[int64]*builder.MazeImageBuilder}{mazes})
+			t.Execute(w, struct{Mazes map[int64]*builder.MazeImageMatrix}{mazes})
 
 		})
 		log.Fatal(http.ListenAndServe(":8080", nil))
