@@ -18,8 +18,6 @@ const (
 	BORDER
 	START
 	END
-	VISITED
-	ROUTE
 )
 
 type MazeImageMatrix struct {
@@ -37,14 +35,6 @@ func (i MazeImageMatrix) String() string {
 	for _, data := range i.M {
 		for _, token := range data {
 			switch true {
-			case ROUTE == (ROUTE & token):
-				buff.Write([]byte{'*'})
-			case VISITED == (VISITED & token):
-				buff.Write([]byte{'.'}) //
-			case START == (START & token):
-				buff.Write([]byte{'S'})
-			case END == (END & token):
-				buff.Write([]byte{'E'})
 			case WALL == (WALL & token):
 				buff.Write([]byte{'#'})
 			case PATH == (PATH & token), BORDER == (BORDER & token):
