@@ -1,13 +1,13 @@
 package solver
 
 import (
+	"bytes"
 	"github.com/pbergman/maze/builder"
 	"image"
 	"image/color"
 	"image/draw"
 	"image/gif"
 	"os"
-	"bytes"
 )
 
 type Direction uint16
@@ -35,11 +35,11 @@ const (
 )
 
 type Walker struct {
-	s  Position                 // start point
-	e  Position                 // end point
-	b  image.Rectangle          // maze bounds, to set borders
-	m  *builder.MazeImageMatrix //
-	r  *TraceablePosition       // result
+	s Position                 // start point
+	e Position                 // end point
+	b image.Rectangle          // maze bounds, to set borders
+	m *builder.MazeImageMatrix //
+	r *TraceablePosition       // result
 }
 
 // NewWalker initialize walker and determine the start/end points
@@ -123,7 +123,7 @@ func (w Walker) DrawImage() draw.Image {
 	ratio := int(w.m.I.GetRatio())
 	for _, t := range w.r.t {
 		rect := image.Rect(t.x*ratio, t.y*ratio, t.x*ratio+int(w.m.I.GetRatio()), t.y*ratio+int(w.m.I.GetRatio()))
-		switch (true) {
+		switch true {
 		case OK == (OK & t.t):
 			draw.Draw(maze, rect, &image.Uniform{color.RGBA{255, 0, 0, 150}}, image.ZP, draw.Src)
 		default:
@@ -144,20 +144,42 @@ func (w Walker) CreateAnimationImage(file *os.File) {
 
 	out := &gif.GIF{}
 	ratio := int(w.m.I.GetRatio())
-	for _, t := range w.r.t {
-		maze := w.m.DrawImage()
-		rect := image.Rect(t.x*ratio, t.y*ratio, t.x*ratio+int(w.m.I.GetRatio()), t.y*ratio+int(w.m.I.GetRatio()))
-		switch (true) {
-		case OK == (OK & t.t):
-			draw.Draw(maze, rect, &image.Uniform{color.RGBA{255, 0, 0, 150}}, image.ZP, draw.Src)
-		default:
-			draw.Draw(maze, rect, &image.Uniform{color.RGBA{133, 133, 133, 150}}, image.ZP, draw.Src)
+	maze := w.m.DrawImage()
+
+	if len(w.r.t) <= 1000 {
+		for _, t := range w.r.t {
+			rect := image.Rect(t.x*ratio, t.y*ratio, t.x*ratio+int(w.m.I.GetRatio()), t.y*ratio+int(w.m.I.GetRatio()))
+			switch true {
+			case OK == (OK & t.t):
+				draw.Draw(maze, rect, &image.Uniform{color.RGBA{255, 0, 0, 150}}, image.ZP, draw.Src)
+			default:
+				draw.Draw(maze, rect, &image.Uniform{color.RGBA{133, 133, 133, 150}}, image.ZP, draw.Src)
+			}
+
+			pm := image.NewPaletted(maze.Bounds(), palette)
+			draw.FloydSteinberg.Draw(pm, maze.Bounds(), maze, image.ZP)
+			out.Image = append(out.Image, pm)
+			out.Delay = append(out.Delay, 0)
 		}
-		pm := image.NewPaletted(maze.Bounds(), palette)
-		draw.FloydSteinberg.Draw(pm, maze.Bounds(), maze, image.ZP)
-		out.Image = append(out.Image, pm)
-		out.Delay = append(out.Delay, 0)
+	} else {
+		for i := 0; i < len(w.r.t); i++ {
+			rect := image.Rect(w.r.t[i].x*ratio, w.r.t[i].y*ratio, w.r.t[i].x*ratio+int(w.m.I.GetRatio()), w.r.t[i].y*ratio+int(w.m.I.GetRatio()))
+			switch true {
+			case OK == (OK & w.r.t[i].t):
+				draw.Draw(maze, rect, &image.Uniform{color.RGBA{255, 0, 0, 150}}, image.ZP, draw.Src)
+			default:
+				draw.Draw(maze, rect, &image.Uniform{color.RGBA{133, 133, 133, 150}}, image.ZP, draw.Src)
+			}
+
+			if i%100 == 0 {
+				pm := image.NewPaletted(maze.Bounds(), palette)
+				draw.FloydSteinberg.Draw(pm, maze.Bounds(), maze, image.ZP)
+				out.Image = append(out.Image, pm)
+				out.Delay = append(out.Delay, 0)
+			}
+		}
 	}
+
 	gif.EncodeAll(file, out)
 }
 
@@ -240,7 +262,7 @@ func (w Walker) String() string {
 		for x, token := range data {
 
 			if trace := w.r.GetTrace(x, y); trace != nil {
-				switch (true) {
+				switch true {
 				case OK == (OK & trace.t):
 					buff.Write([]byte{'*'})
 				case VISITED == (VISITED & trace.t):

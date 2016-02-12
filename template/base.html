@@ -101,11 +101,55 @@
             <div class="list-group">
                 <a href="#" class="list-group-item" data-toggle="modal" data-target="#MazeModal">New Maze</a>
                 {{range $id, $maze := .Mazes }}
-                <a href="#" class="list-group-item image" id="{{ $maze }}">View {{ $maze }}</a>
+                <a href="#" class="list-group-item image" id="{{ $id }}">View {{ $id }}</a>
                 {{end}}
             </div>
         </div>
         <div class="col-md-8 image-container">
+
+            <div class="panel-group" id="maze-overview" role="tablist" aria-multiselectable="true">
+                <div class="panel panel-default">
+                    <div class="panel-heading" role="tab" id="headingMaze">
+                        <h4 class="panel-title">
+                            <a role="button" data-toggle="collapse" data-parent="#maze-overview" href="#maze" aria-expanded="true" aria-controls="maze">
+                                Maze
+                            </a>
+                        </h4>
+                    </div>
+                    <div id="maze" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingMaze">
+                        <div class="panel-body">
+                        </div>
+                    </div>
+                </div>
+                <div class="panel panel-default">
+                    <div class="panel-heading" role="tab" id="headingSolved">
+                        <h4 class="panel-title">
+                            <a class="collapsed" role="button" data-toggle="collapse" data-parent="#maze-overview" href="#solved" aria-expanded="false" aria-controls="solved">
+                                Solved
+                            </a>
+                        </h4>
+                    </div>
+                    <div id="solved" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingSolved">
+                        <div class="panel-body">
+                        </div>
+                    </div>
+                </div>
+                <div class="panel panel-default">
+                    <div class="panel-heading" role="tab" id="headingAnimation">
+                        <h4 class="panel-title">
+                            <a class="collapsed" role="button" data-toggle="collapse" data-parent="#maze-overview" href="#animation" aria-expanded="false" aria-controls="animation">
+                                Animation
+                            </a>
+                        </h4>
+                    </div>
+                    <div id="animation" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingAnimation">
+                        <div class="panel-body">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
         </div>
     </div>
 </div>
@@ -114,23 +158,46 @@
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
 <script type="text/javascript">
     $(document).ready(function() {
-        var loadImage = function(id) {
-            var ic = $('div.image-container'),
+        var mazeOverview = $("#maze-overview"),
+            loadImage = function(id) {
+                var loader = $(".progress"),
+                    mic = $('div#maze div.panel-body'),
+                    sic = $('div#solved div.panel-body'),
+                    aic = $('div#animation div.panel-body'),
+
                     mi = $('<img />', {
                         id: 'maze' + id,
                         src: '/show/' + id,
-                        alt: 'maze image'
+                        alt: 'maze image',
+                        style: "width:100%"
                     }),
                     si = $('<img />', {
                         id: 'solved' + id,
                         src: '/solved/' + id,
-                        alt: 'solved maze image'
-                    });
+                        alt: 'solved maze image',
+                        style: "width:100%"
+                    }),
+                    ai = $('<img />', {
+                        id: 'animation' + id,
+                        src: '/animation/' + id,
+                        alt: 'solved animation maze image',
+                        style: "width:100%"
+                    })
+                        ;
 
-            ic.empty();
-            mi.appendTo(ic);
-            si.appendTo(ic);
-        };
+                mic.empty();
+                sic.empty();
+                aic.empty();
+
+                mi.appendTo(mic);
+                si.appendTo(sic);
+                ai.appendTo(aic);
+
+                mazeOverview.show()
+            };
+
+        mazeOverview.hide();
+
         $('div.modal-footer button.btn.btn-primary').on('click', function(e){
             e.preventDefault();
             $.ajax({
@@ -150,7 +217,7 @@
                         });
                         link.appendTo('div.list-group');
                     });
-                    $('#myModal').modal('hide');
+                    $('#MazeModal').modal('hide');
                     loadImage(data[data.length-1]);
                 }
             })

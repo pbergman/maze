@@ -37,7 +37,7 @@ func (t *TraceablePosition) GoBack() {
 
 	// search last multi section position with tries left
 	for i, wt := range t.t {
-		if MULTI == (MULTI & wt.t) && OK == (OK & wt.t) && wt.tr > 0 {
+		if MULTI == (MULTI&wt.t) && OK == (OK&wt.t) && wt.tr > 0 {
 			index = i
 		}
 	}
@@ -55,7 +55,7 @@ func (t *TraceablePosition) GoBack() {
 		if i == index {
 			for i := 0; i < len(t.t); i++ {
 				// remove all ok tokens
-				if inSlice(t.t[i].s, t.s[o:])  {
+				if inSlice(t.t[i].s, t.s[o:]) {
 					t.t[i].t ^= OK
 				}
 			}
