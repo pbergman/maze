@@ -1,0 +1,13 @@
+{{define "list-group"}}
+<div class="list-group has-feedback">
+    <a href="#" class="list-group-item" data-toggle="modal" data-target="#MazeModal" id="list-group-modal">
+        New Maze
+        <span class="glyphicon glyphicon-question-sign form-control-feedback" aria-hidden="true"></span>
+    </a>
+    {{range $id, $maze := .Mazes }}
+    <a href="#" class="list-group-item show-image" id="{{ $id }}">View {{ $id }}</a>
+    {{end}}
+</div>
+{{end}}
+
+
