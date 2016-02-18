@@ -88,11 +88,11 @@ func handleWebSocketRequest(w http.ResponseWriter, r *http.Request) {
 						width :=  int(binary.BigEndian.Uint16(data[3:5]));
 						ratio :=  uint(binary.BigEndian.Uint16(data[5:7]));
 						id := time.Now().Unix()
-						log.Printf("New Maze(%d): %dx%d [ratio:%d][path:%d,%d,%d][wall:%d,%d,%d]",id, height, width, ratio, data[7],  data[8],  data[9], data[10], data[11], data[12])
-						maze := builder.NewMazeImageBuilder(height, width)
-						maze.SetRatio(ratio)
-						maze.SetPathColor(data[7],  data[8],  data[9])
-						maze.SetWallColor(data[10], data[11], data[12])
+						log.Printf("New Maze(%d): %dx%d [ratio:%d][wall:%d,%d,%d][path:%d,%d,%d]",id, height, width, ratio, data[7],  data[8],  data[9], data[10], data[11], data[12])
+						maze := builder.NewMazeImageBuilder(int(height), int(width))
+						maze.SetRatio(uint(ratio))
+						maze.SetWallColor(byte(data[7]),  byte(data[8]),  byte(data[9]))
+						maze.SetPathColor(byte(data[10]), byte(data[11]), byte(data[12]))
 						matrix, _ := maze.GetMatrix()
 						mazes[id] = matrix
 						websockets.Broadcast(1, getTemplateList(w))
@@ -101,36 +101,30 @@ func handleWebSocketRequest(w http.ResponseWriter, r *http.Request) {
 						err := conn.WriteMessage(websocket.BinaryMessage, append(m, getTemplateList(w)...))
 						checkHttpError(err, w)
 					case 3:    // get maze
-fmt.Println(int64(binary.BigEndian.Uint32(data[1:])))
-						m := mazes[int64(binary.BigEndian.Uint32(data[1:]))]
-						r := m.I.GetRatio()
-						b := make([]byte, 2)
-						binary.BigEndian.PutUint16(b, uint16(r))
-
-						p := append(b, m.I.GetWallColor()...)
-
-						b = make([]byte, 2)
-						binary.BigEndian.PutUint16(b, uint16(len(m.M)))
-						p = append(p, b...)
-						b = make([]byte, 2)
-						binary.BigEndian.PutUint16(b, uint16(len(m.M[0])))
-						p = append(p, b...)
-
-
-						for y := 0; y < len(m.M)*int(r); y += int(r) {
-							for x := 0; x < len(m.M[y/int(r)])*int(r); x += int(r) {
-								t :=  m.M[y/int(r)][x/int(r)]
-								if  builder.PATH != (builder.PATH & t) {
-									p = append(p, byte(x))
-									p = append(p, byte(y))
+						if m, ok := mazes[int64(binary.BigEndian.Uint32(data[1:]))]; ok {
+							ratio := m.I.GetRatio()
+							buf := new(bytes.Buffer)
+							buf.Write([]byte{2}) // type id
+							binary.Write(buf, binary.BigEndian, uint16(ratio))
+							binary.Write(buf, binary.BigEndian, uint16(len(m.M) * int(ratio)))
+							binary.Write(buf, binary.BigEndian, uint16(len(m.M[0])  * int(ratio)))
+							buf.Write(m.I.GetWallColor())
+							for y := 0; y < len(m.M)*int(ratio); y += int(ratio) {
+								for x := 0; x < len(m.M[y/int(ratio)])*int(ratio); x += int(ratio) {
+									t :=  m.M[y/int(ratio)][x/int(ratio)]
+									if  builder.WALL == (builder.WALL & t) {
+										binary.Write(buf, binary.BigEndian, uint16(x))
+										binary.Write(buf, binary.BigEndian, uint16(y))
+									}
 								}
 							}
+							fmt.Println(buf.Bytes())
+							err := conn.WriteMessage(websocket.BinaryMessage, buf.Bytes())
+							checkHttpError(err, w)
+
+						} else {
+							http.Error(w, fmt.Sprintf("No maze exist by id %d", int64(binary.BigEndian.Uint32(data[1:]))), 500)
 						}
-						fmt.Println(p)
-
-						err := conn.WriteMessage(websocket.BinaryMessage, append([]byte{2}, p...))
-						checkHttpError(err, w)
-
 					}
 				default:
 					fmt.Println(mt)

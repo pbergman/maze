@@ -194,6 +194,64 @@
         })( jQuery );
 
 
+        function MazeConfig(){
+
+            var h,w,r,wc,pc;
+
+            return {
+                getHeight: function() {
+                    return h
+                },
+                setHeight: function(nh) {
+                    h = nh;
+                },
+                fromForm: function(form){
+                    return new MazeConfig(
+                        form.find('input#height').val(),
+                        form.find('input#width').val(),
+                        form.find('input#ratio').val(),
+                        form.find('input#br').val(),
+                        form.find('input#bg').val(),
+                        form.find('input#bb').val(),
+                        form.find('input#pr').val(),
+                        form.find('input#pg').val(),
+                        form.find('input#pb').val()
+                    )
+                }
+
+//
+//            this.height = height;
+//            this.width = width;
+//            this.ratio = ratio;
+//            this.wall = {
+//                r: wallR,
+//                g: wallG,
+//                b: wallB
+//            };
+//            this.path = {
+//                r: pathR,
+//                g: pathG,
+//                b: pathB
+//            };
+        }
+
+        MazeConfig.prototype.fromForm = function(){
+            return new this(
+                $('form#new-maze input#height'),
+                $('form#new-maze input#width'),
+                $('form#new-maze input#ratio'),
+                $('form#new-maze input#br'),
+                $('form#new-maze input#bg'),
+                $('form#new-maze input#bb'),
+                $('form#new-maze input#pr'),
+                $('form#new-maze input#pg'),
+                $('form#new-maze input#pb')
+            )
+        };
+
+        config = MazeConfig.getHeight()
+
+
         var form = (function() {
             var id = "new-maze",
                 height = $('form#' + id + ' input#height'),
@@ -243,21 +301,34 @@
                         break;
                     case 2:
                         var view = new DataView(reader.result, 1, 9);
-                        console.log(view.getInt16(0));
-                        console.log(view.getUint8(2));
-                        console.log(view.getUint8(3));
-                        console.log(view.getUint8(4));
-                        console.log(view.getUint16(5));
-                        console.log(view.getUint16(7));
 
+                         var ratio = view.getUint16(0),
+                             height = view.getUint16(2),
+                             width = view.getUint16(4),
+                             wall = {
+                                 r: view.getUint8(6),
+                                 g: view.getUint8(7),
+                                 b: view.getUint8(8)
+                             };
 
                         var canvas = document.createElement('canvas');
-                        canvas.width  = view.getUint16(5);
-                        canvas.height = view.getUint16(7);
+                        canvas.width  = width;
+                        canvas.height = height;
 
-                        var bytes = new Uint8Array(reader.result, 9);
+                        var ctx = canvas.getContext('2d');
+                        ctx.fillStyle = "rgb(255,255,255)";
+                        ctx.fillRect(0,0,height,width);
+                        ctx.save();
 
+                        var bytes = new DataView(reader.result, 10);
 
+                        for (var i = 0; i < bytes.byteLength/2; i += 2) {
+                            ctx.fillStyle = 'rgb('+ wall.r +','+ wall.g +','+ wall.b +')';
+                            ctx.fillRect(bytes.getUint16(i*2), bytes.getUint16(i*2+2), ratio, ratio);
+                        }
+
+                        ctx.save();
+                        document.body.appendChild(canvas);
                         break
                 }
 
@@ -270,6 +341,9 @@
                     };
                     ws.onopen = function(e) {
                         connected = true;
+                        var data = new Uint8Array(1);
+                        data[0] = 2;
+                        ws.send(data);
                     };
                     ws.onmessage = function(e) {
                         reader.readAsArrayBuffer(e.data);
@@ -289,9 +363,6 @@
                 reConnect: function(){
                     if (false === connection.isConnected()) {
                         connect();
-                        var data = new Uint8Array(1);
-                        data[0] = 2;
-                        ws.send(data);
                     }
                 }
             }
