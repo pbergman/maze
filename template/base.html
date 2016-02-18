@@ -16,6 +16,56 @@
         <p class="lead">Simple maze solver that solves mazes generate from <a href="http://www.hereandabove.com/maze/mazeorig.form.html" target="_blank">Maze Maker</a> created by <a href="mailto:jlauro@umich.edu">John Lauro</a></p>
     </div>
 
+    <div class="row">
+        <div class="col-md-4 list-group-container">
+            {{template "list-group"}}
+        </div>
+        <div class="col-md-8 image-container">
+
+            <div class="panel-group" id="maze-overview" role="tablist" aria-multiselectable="true">
+                <div class="panel panel-default">
+                    <div class="panel-heading" role="tab" id="headingMaze">
+                        <h4 class="panel-title">
+                            <a role="button" data-toggle="collapse" data-parent="#maze-overview" href="#maze" aria-expanded="true" aria-controls="maze">
+                                Maze
+                            </a>
+                        </h4>
+                    </div>
+                    <div id="maze" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingMaze">
+                        <div class="panel-body">
+                        </div>
+                    </div>
+                </div>
+                <div class="panel panel-default">
+                    <div class="panel-heading" role="tab" id="headingSolved">
+                        <h4 class="panel-title">
+                            <a class="collapsed" role="button" data-toggle="collapse" data-parent="#maze-overview" href="#solved" aria-expanded="false" aria-controls="solved">
+                                Solved
+                            </a>
+                        </h4>
+                    </div>
+                    <div id="solved" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingSolved">
+                        <div class="panel-body">
+                        </div>
+                    </div>
+                </div>
+                <div class="panel panel-default">
+                    <div class="panel-heading" role="tab" id="headingAnimation">
+                        <h4 class="panel-title">
+                            <a class="collapsed" role="button" data-toggle="collapse" data-parent="#maze-overview" href="#animation" aria-expanded="false" aria-controls="animation">
+                                Animation
+                            </a>
+                        </h4>
+                    </div>
+                    <div id="animation" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingAnimation">
+                        <div class="panel-body">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal -->
     <div class="modal fade" id="MazeModal" tabindex="-1" role="dialog" aria-labelledby="MazeModalLabel">
         <div class="modal-dialog" role="document">
@@ -95,136 +145,215 @@
         </div>
     </div>
 
-
-    <div class="row">
-        <div class="col-md-4">
-            <div class="list-group">
-                <a href="#" class="list-group-item" data-toggle="modal" data-target="#MazeModal">New Maze</a>
-                {{range $id, $maze := .Mazes }}
-                <a href="#" class="list-group-item image" id="{{ $id }}">View {{ $id }}</a>
-                {{end}}
-            </div>
-        </div>
-        <div class="col-md-8 image-container">
-
-            <div class="panel-group" id="maze-overview" role="tablist" aria-multiselectable="true">
-                <div class="panel panel-default">
-                    <div class="panel-heading" role="tab" id="headingMaze">
-                        <h4 class="panel-title">
-                            <a role="button" data-toggle="collapse" data-parent="#maze-overview" href="#maze" aria-expanded="true" aria-controls="maze">
-                                Maze
-                            </a>
-                        </h4>
-                    </div>
-                    <div id="maze" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingMaze">
-                        <div class="panel-body">
-                        </div>
-                    </div>
-                </div>
-                <div class="panel panel-default">
-                    <div class="panel-heading" role="tab" id="headingSolved">
-                        <h4 class="panel-title">
-                            <a class="collapsed" role="button" data-toggle="collapse" data-parent="#maze-overview" href="#solved" aria-expanded="false" aria-controls="solved">
-                                Solved
-                            </a>
-                        </h4>
-                    </div>
-                    <div id="solved" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingSolved">
-                        <div class="panel-body">
-                        </div>
-                    </div>
-                </div>
-                <div class="panel panel-default">
-                    <div class="panel-heading" role="tab" id="headingAnimation">
-                        <h4 class="panel-title">
-                            <a class="collapsed" role="button" data-toggle="collapse" data-parent="#maze-overview" href="#animation" aria-expanded="false" aria-controls="animation">
-                                Animation
-                            </a>
-                        </h4>
-                    </div>
-                    <div id="animation" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingAnimation">
-                        <div class="panel-body">
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-
-        </div>
-    </div>
 </div>
 <script src="//code.jquery.com/jquery-1.12.0.min.js"></script>
 <!-- Latest compiled and minified JavaScript -->
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
 <script type="text/javascript">
     $(document).ready(function() {
-        var mazeOverview = $("#maze-overview"),
-            loadImage = function(id) {
-                var loader = $(".progress"),
-                    mic = $('div#maze div.panel-body'),
-                    sic = $('div#solved div.panel-body'),
-                    aic = $('div#animation div.panel-body'),
 
-                    mi = $('<img />', {
-                        id: 'maze' + id,
-                        src: '/show/' + id,
-                        alt: 'maze image',
-                        style: "width:100%"
-                    }),
-                    si = $('<img />', {
-                        id: 'solved' + id,
-                        src: '/solved/' + id,
-                        alt: 'solved maze image',
-                        style: "width:100%"
-                    }),
-                    ai = $('<img />', {
-                        id: 'animation' + id,
-                        src: '/animation/' + id,
-                        alt: 'solved animation maze image',
-                        style: "width:100%"
-                    })
-                        ;
-
-                mic.empty();
-                sic.empty();
-                aic.empty();
-
-                mi.appendTo(mic);
-                si.appendTo(sic);
-                ai.appendTo(aic);
-
-                mazeOverview.show()
+        (function( $ ){
+            $.fn.updateStatus = function() {
+                if (connection.isConnected) {
+                    if ($(this).hasClass("has-error")) {
+                        $(this).removeClass("has-error");
+                    }
+                    if (false === $(this).hasClass("has-success")) {
+                        $(this).addClass("has-success");
+                    }
+                    if ($(this).find("a span.glyphicon").hasClass("glyphicon-question-sign")) {
+                        $(this).find("a span.glyphicon").removeClass("glyphicon-question-sign");
+                    }
+                    if ($(this).find("a span.glyphicon").hasClass("glyphicon-remove")) {
+                        $(this).find("a span.glyphicon").removeClass("glyphicon-remove");
+                    }
+                    if (false === $(this).find("a span.glyphicon").hasClass("glyphicon-ok")) {
+                        $(this).find("a span.glyphicon").addClass("glyphicon-ok");
+                    }
+                    $(this).find("a#list-group-modal").attr("data-toggle", "modal");
+                } else {
+                    if ($(this).hasClass("has-success")) {
+                        $(this).removeClass("has-success");
+                    }
+                    if (false === $(this).hasClass("has-error")) {
+                        $(this).addClass("has-error");
+                    }
+                    if ($(this).find("a span.glyphicon").hasClass("glyphicon-success")) {
+                        $(this).find("a span.glyphicon").removeClass("glyphicon-success");
+                    }
+                    if ($(this).find("a span.glyphicon").hasClass("glyphicon-question-sign")) {
+                        $(this).find("a span.glyphicon").removeClass("glyphicon-question-sign");
+                    }
+                    if (false === $(this).find("a span.glyphicon").hasClass("glyphicon-remove")) {
+                        $(this).find("a span.glyphicon").addClass("glyphicon-remove");
+                    }
+                    $(this).find("a#list-group-modal").attr("data-toggle", "");
+                }
+                return this;
             };
+        })( jQuery );
+
+
+        var form = (function() {
+            var id = "new-maze",
+                height = $('form#' + id + ' input#height'),
+                width =  $('form#' + id + ' input#width'),
+                ratio =  $('form#' + id + ' input#ratio'),
+                border =  {
+                    r :  $('form#' + id + ' input#br'),
+                    g :  $('form#' + id + ' input#bg'),
+                    b :  $('form#' + id + ' input#bb')
+                },
+                path =  {
+                    r :  $('form#' + id + ' input#pr'),
+                    g :  $('form#' + id + ' input#pg'),
+                    b :  $('form#' + id + ' input#pb')
+                }
+            ;
+            return {
+                clear : function() {
+                    $('form#' + id).trigger("reset");
+                },
+                serialize : function(){
+                        var view   = new DataView(new ArrayBuffer(13));
+                        view.setInt8(0, 1);
+                        view.setInt16(1, height.val());
+                        view.setInt16(3, width.val());
+                        view.setInt16(5, ratio.val());
+                        view.setInt8(7, border.r.val());
+                        view.setInt8(8, border.g.val());
+                        view.setInt8(9, border.b.val());
+                        view.setInt8(10, path.r.val());
+                        view.setInt8(11, path.g.val());
+                        view.setInt8(12, path.b.val());
+                        return view
+
+                }
+            }
+        })(),
+        connection = (function(){
+
+            var ws, connected = false, connect, reader = new FileReader();
+
+            reader.addEventListener("loadend", function() {
+                switch (new Uint8Array(reader.result, 0, 1)[0]) {
+                    case 1:
+                        var element = $(String.fromCharCode.apply(null, new Uint8Array(reader.result, 1))).updateStatus();
+                        $("div.list-group").replaceWith(element);
+                        break;
+                    case 2:
+                        var view = new DataView(reader.result, 1, 9);
+                        console.log(view.getInt16(0));
+                        console.log(view.getUint8(2));
+                        console.log(view.getUint8(3));
+                        console.log(view.getUint8(4));
+                        console.log(view.getUint16(5));
+                        console.log(view.getUint16(7));
+
+
+                        var canvas = document.createElement('canvas');
+                        canvas.width  = view.getUint16(5);
+                        canvas.height = view.getUint16(7);
+
+                        var bytes = new Uint8Array(reader.result, 9);
+
+
+                        break
+                }
+
+            });
+            connect = function() {
+                try {
+                    ws = new WebSocket("ws://" + window.location.hostname + ":" + window.location.port + "/ws");
+                    ws.onclose = function(e) {
+                        connected = false
+                    };
+                    ws.onopen = function(e) {
+                        connected = true;
+                    };
+                    ws.onmessage = function(e) {
+                        reader.readAsArrayBuffer(e.data);
+                    };
+                } catch (e) {
+                    connected = false
+                }
+            };
+            connect();
+            return {
+                isConnected: function() {
+                    return connected
+                },
+                send: function(e) {
+                    ws.send(e)
+                },
+                reConnect: function(){
+                    if (false === connection.isConnected()) {
+                        connect();
+                        var data = new Uint8Array(1);
+                        data[0] = 2;
+                        ws.send(data);
+                    }
+                }
+            }
+
+
+        })()
+
+        ;
+        $('div.list-group').updateStatus();
+
+        var mazeOverview = $("#maze-overview"),
+                loadImage = function(id) {
+                    var loader = $(".progress"),
+                            mic = $('div#maze div.panel-body'),
+                            sic = $('div#solved div.panel-body'),
+                            aic = $('div#animation div.panel-body'),
+                            mi = $('<img />', {
+                                id: 'maze' + id,
+                                src: '/show/' + id,
+                                alt: 'maze image',
+                                style: "width:100%"
+                            }),
+                            si = $('<img />', {
+                                id: 'solved' + id,
+                                src: '/solved/' + id,
+                                alt: 'solved maze image',
+                                style: "width:100%"
+                            }),
+                            ai = $('<img />', {
+                                id: 'animation' + id,
+                                src: '/animation/' + id,
+                                alt: 'solved animation maze image',
+                                style: "width:100%"
+                            })
+                            ;
+
+                    mic.empty();
+                    sic.empty();
+                    aic.empty();
+
+                    mi.appendTo(mic);
+                    si.appendTo(sic);
+                    ai.appendTo(aic);
+
+                    mazeOverview.show()
+                };
 
         mazeOverview.hide();
 
         $('div.modal-footer button.btn.btn-primary').on('click', function(e){
             e.preventDefault();
-            $.ajax({
-                url:        '/',
-                type:       'post',
-                dataType:   'json',
-                data:       $('#new-maze').serialize(),
-                success:    function(data) {
-                    var links = $('a.list-group-item.image');
-                    links.remove();
-                    $.each(data, function(k,v) {
-                        var link = $('<a/>', {
-                            href: '#',
-                            class: 'list-group-item image',
-                            id: v,
-                            text: "View " + v
-                        });
-                        link.appendTo('div.list-group');
-                    });
-                    $('#MazeModal').modal('hide');
-                    loadImage(data[data.length-1]);
-                }
-            })
+            connection.send(form.serialize());
+            form.clear();
+            $('#MazeModal').modal('hide');
+
         });
-        $(document).on("click", "a.list-group-item.image", function(e) {
+        $(document).on("click", "a.list-group-item.show-image", function(e) {
             e.preventDefault();
-            loadImage($(this).attr('id'))
+            var view = new DataView(new ArrayBuffer(5));
+            view.setInt8(0, 3);
+            view.setUint32(1, $(this).attr('id'));
+            connection.send(view);
         });
     })
 </script>

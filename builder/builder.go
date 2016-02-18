@@ -29,6 +29,10 @@ func NewMazeImageBuilder(height, width int) *MazeImageBuilder {
 		wall_color: &color.RGBA{0, 0, 0, 255},
 	}
 }
+// GetPathColor will return a byte slice with rgb colors
+func (m *MazeImageBuilder) GetPathColor() []byte {
+	return []byte{m.path_color.R, m.path_color.G, m.path_color.B}
+}
 
 // SetPathColor will set path color for maze, default 255,255,255
 func (m *MazeImageBuilder) SetPathColor(r, g, b byte) {
@@ -42,6 +46,11 @@ func (m *MazeImageBuilder) SetWallColor(r, g, b byte) {
 	m.wall_color.R = r
 	m.wall_color.G = g
 	m.wall_color.B = b
+}
+
+// GetPathColor will return a byte slice with rgb colors
+func (m *MazeImageBuilder) GetWallColor() []byte {
+	return []byte{m.wall_color.R, m.wall_color.G, m.wall_color.B}
 }
 
 // Will set ration, so ef set to 2 every "pixel block" is 2x2 pixel
