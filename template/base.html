@@ -20,49 +20,7 @@
         <div class="col-md-4 list-group-container">
             {{template "list-group"}}
         </div>
-        <div class="col-md-8 image-container">
-
-            <div class="panel-group" id="maze-overview" role="tablist" aria-multiselectable="true">
-                <div class="panel panel-default">
-                    <div class="panel-heading" role="tab" id="headingMaze">
-                        <h4 class="panel-title">
-                            <a role="button" data-toggle="collapse" data-parent="#maze-overview" href="#maze" aria-expanded="true" aria-controls="maze">
-                                Maze
-                            </a>
-                        </h4>
-                    </div>
-                    <div id="maze" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingMaze">
-                        <div class="panel-body">
-                        </div>
-                    </div>
-                </div>
-                <div class="panel panel-default">
-                    <div class="panel-heading" role="tab" id="headingSolved">
-                        <h4 class="panel-title">
-                            <a class="collapsed" role="button" data-toggle="collapse" data-parent="#maze-overview" href="#solved" aria-expanded="false" aria-controls="solved">
-                                Solved
-                            </a>
-                        </h4>
-                    </div>
-                    <div id="solved" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingSolved">
-                        <div class="panel-body">
-                        </div>
-                    </div>
-                </div>
-                <div class="panel panel-default">
-                    <div class="panel-heading" role="tab" id="headingAnimation">
-                        <h4 class="panel-title">
-                            <a class="collapsed" role="button" data-toggle="collapse" data-parent="#maze-overview" href="#animation" aria-expanded="false" aria-controls="animation">
-                                Animation
-                            </a>
-                        </h4>
-                    </div>
-                    <div id="animation" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingAnimation">
-                        <div class="panel-body">
-                        </div>
-                    </div>
-                </div>
-            </div>
+        <div class="col-md-8 images">
         </div>
     </div>
 
@@ -152,7 +110,7 @@
 <script type="text/javascript">
     $(document).ready(function() {
 
-        (function( $ ){
+        (function($){
             $.fn.updateStatus = function() {
                 if (connection.isConnected) {
                     if ($(this).hasClass("has-error")) {
@@ -191,108 +149,118 @@
                 }
                 return this;
             };
-        })( jQuery );
+        })(jQuery);
 
-
-        function MazeConfig(){
-
-            var h,w,r,wc,pc;
-
-            return {
-                getHeight: function() {
-                    return h
-                },
-                setHeight: function(nh) {
-                    h = nh;
-                },
-                fromForm: function(form){
-                    return new MazeConfig(
-                        form.find('input#height').val(),
-                        form.find('input#width').val(),
-                        form.find('input#ratio').val(),
-                        form.find('input#br').val(),
-                        form.find('input#bg').val(),
-                        form.find('input#bb').val(),
-                        form.find('input#pr').val(),
-                        form.find('input#pg').val(),
-                        form.find('input#pb').val()
-                    )
-                }
-
-//
-//            this.height = height;
-//            this.width = width;
-//            this.ratio = ratio;
-//            this.wall = {
-//                r: wallR,
-//                g: wallG,
-//                b: wallB
-//            };
-//            this.path = {
-//                r: pathR,
-//                g: pathG,
-//                b: pathB
-//            };
+        function ImageContainer(id, canvas){
+            this.id = id;
+            this.canvas = canvas;
+            this.$template = $("<div class='image-container'><div class='row'></div><div class='row'></div></div>");
         }
 
-        MazeConfig.prototype.fromForm = function(){
-            return new this(
-                $('form#new-maze input#height'),
-                $('form#new-maze input#width'),
-                $('form#new-maze input#ratio'),
-                $('form#new-maze input#br'),
-                $('form#new-maze input#bg'),
-                $('form#new-maze input#bb'),
-                $('form#new-maze input#pr'),
-                $('form#new-maze input#pg'),
-                $('form#new-maze input#pb')
-            )
+        ImageContainer.prototype.appendTo = function(e){
+            this.$template.attr("id", "image" + this.id);
+            this.$template.find(".row:eq(0)").append($('<a >', {
+                text: "Solve",
+                href: "#",
+                class: "solve",
+                'data-play': this.id
+            }).append($('<span />', {
+                class: 'glyphicon glyphicon-play',
+                'aria-hidden': true
+            })));
+            this.$template.find(".row:eq(1)").append(this.canvas);
+            e.append(this.$template)
         };
 
-        config = MazeConfig.getHeight()
+        function MazeConfig(height, width, ratio){
+            this.height = height;
+            this.width  = width;
+            this.ratio  = ratio;
+            this.wall   = { r: 0,   g: 0,   b: 0};
+            this.path   = { r: 255, g: 255, b: 255};
+        }
 
+        MazeConfig.prototype.fromForm = function(form){
+            this.height = form.find('input#height').val();
+            this.width  = form.find('input#width').val();
+            this.ratio  = form.find('input#ratio').val();
+            this.wall   = { r: form.find('input#br').val(), g: form.find('input#bg').val(), b : form.find('input#bb').val() };
+            this.path   = { r: form.find('input#pr').val(), g: form.find('input#pg').val(), b : form.find('input#pb').val() };
+            return this;
+        };
 
-        var form = (function() {
-            var id = "new-maze",
-                height = $('form#' + id + ' input#height'),
-                width =  $('form#' + id + ' input#width'),
-                ratio =  $('form#' + id + ' input#ratio'),
-                border =  {
-                    r :  $('form#' + id + ' input#br'),
-                    g :  $('form#' + id + ' input#bg'),
-                    b :  $('form#' + id + ' input#bb')
+        MazeConfig.prototype.serialize = function(){
+            var view   = new DataView(new ArrayBuffer(13));
+            view.setInt8(0, 1);
+            view.setInt16(1, this.height);
+            view.setInt16(3, this.width);
+            view.setInt16(5, this.ratio);
+            view.setInt8(7, this.wall.r);
+            view.setInt8(8, this.wall.g);
+            view.setInt8(9, this.wall.b);
+            view.setInt8(10, this.path.r);
+            view.setInt8(11, this.path.g);
+            view.setInt8(12, this.path.b);
+            return view
+        };
+
+        MazeConfig.prototype.unserialize = function(view, offset){
+            offset = offset || 0;
+            this.ratio = view.getUint16(0 + offset);
+            this.height = view.getUint16(2 + offset);
+            this.width = view.getUint16(4 + offset);
+            this.wall = {r:view.getUint8(6 + offset), g:view.getUint8(7 + offset),    b:view.getUint8(8 + offset)};
+            this.path = {r:view.getUint8(9 + offset), g:view.getUint8(10 + offset),   b:view.getUint8(11 + offset)};
+            return view
+        };
+
+        var images = (function(){
+            var id = 'div.row div.images div.image-container';
+            return {
+                has: function(i){
+                    return  $(id + "#image" + i).length
                 },
-                path =  {
-                    r :  $('form#' + id + ' input#pr'),
-                    g :  $('form#' + id + ' input#pg'),
-                    b :  $('form#' + id + ' input#pb')
+                clear: function(){
+                    $(id).hide()
+                },
+                show: function(i) {
+                    images.clear();
+                    $(id + "#image" + i).show()
                 }
-            ;
+            }
+        })(),
+        menu = (function(){
+            var id = 'a.list-group-item.show-image';
+            return {
+                clear: function(){
+                    $(id).removeClass("active");
+                },
+                show: function(i) {
+                    $(id + "#" + i).addClass("active");
+                },
+                click: function(i){
+                    menu.clear();
+                    menu.show(i);
+                }
+            }
+        })(),
+        form = (function(){
+            var id = $('form#new-maze'), data = new MazeConfig();
+
             return {
                 clear : function() {
-                    $('form#' + id).trigger("reset");
+                    id.trigger("reset");
                 },
-                serialize : function(){
-                        var view   = new DataView(new ArrayBuffer(13));
-                        view.setInt8(0, 1);
-                        view.setInt16(1, height.val());
-                        view.setInt16(3, width.val());
-                        view.setInt16(5, ratio.val());
-                        view.setInt8(7, border.r.val());
-                        view.setInt8(8, border.g.val());
-                        view.setInt8(9, border.b.val());
-                        view.setInt8(10, path.r.val());
-                        view.setInt8(11, path.g.val());
-                        view.setInt8(12, path.b.val());
-                        return view
-
+                submit: function() {
+                    if (connection.isConnected()) {
+                        connection.send(data.fromForm(id).serialize());
+                        form.clear();
+                    }
                 }
             }
         })(),
         connection = (function(){
-
             var ws, connected = false, connect, reader = new FileReader();
-
             reader.addEventListener("loadend", function() {
                 switch (new Uint8Array(reader.result, 0, 1)[0]) {
                     case 1:
@@ -300,46 +268,50 @@
                         $("div.list-group").replaceWith(element);
                         break;
                     case 2:
-                        var view = new DataView(reader.result, 1, 9);
+                        var view = new DataView(reader.result, 1, 16),
+                            id = view.getUint32(0);
 
-                         var ratio = view.getUint16(0),
-                             height = view.getUint16(2),
-                             width = view.getUint16(4),
-                             wall = {
-                                 r: view.getUint8(6),
-                                 g: view.getUint8(7),
-                                 b: view.getUint8(8)
-                             };
+                        var data = new MazeConfig();
+                        data.unserialize(view, 4);
 
                         var canvas = document.createElement('canvas');
-                        canvas.width  = width;
-                        canvas.height = height;
+                        canvas.width  = data.width;
+                        canvas.height = data.height;
 
                         var ctx = canvas.getContext('2d');
-                        ctx.fillStyle = "rgb(255,255,255)";
-                        ctx.fillRect(0,0,height,width);
+                        ctx.fillStyle = 'rgb('+ data.path.r +','+ data.path.g +','+ data.path.b +')';
+                        ctx.fillRect(0,0,data.height,data.width);
                         ctx.save();
 
-                        var bytes = new DataView(reader.result, 10);
+                        var bytes = new DataView(reader.result, 17);
 
                         for (var i = 0; i < bytes.byteLength/2; i += 2) {
-                            ctx.fillStyle = 'rgb('+ wall.r +','+ wall.g +','+ wall.b +')';
-                            ctx.fillRect(bytes.getUint16(i*2), bytes.getUint16(i*2+2), ratio, ratio);
+                            ctx.fillStyle = 'rgb('+ data.wall.r +','+ data.wall.g +','+ data.wall.b +')';
+                            ctx.fillRect(bytes.getUint16(i*2), bytes.getUint16(i*2+2),  data.ratio,  data.ratio);
                         }
 
                         ctx.save();
-                        document.body.appendChild(canvas);
-                        break
+
+                        var container = new ImageContainer(id, canvas);
+                        container.appendTo($('div.images'));
+
+                        menu.click(id);
+                        images.show(id);
+                        break;
+                    case 4:
+
+                        break;
+
                 }
 
             });
             connect = function() {
                 try {
                     ws = new WebSocket("ws://" + window.location.hostname + ":" + window.location.port + "/ws");
-                    ws.onclose = function(e) {
+                    ws.onclose = function() {
                         connected = false
                     };
-                    ws.onopen = function(e) {
+                    ws.onopen = function() {
                         connected = true;
                         var data = new Uint8Array(1);
                         data[0] = 2;
@@ -360,71 +332,45 @@
                 send: function(e) {
                     ws.send(e)
                 },
-                reConnect: function(){
+                reConnect: function() {
                     if (false === connection.isConnected()) {
                         connect();
                     }
                 }
             }
-
-
         })()
-
         ;
+
         $('div.list-group').updateStatus();
-
-        var mazeOverview = $("#maze-overview"),
-                loadImage = function(id) {
-                    var loader = $(".progress"),
-                            mic = $('div#maze div.panel-body'),
-                            sic = $('div#solved div.panel-body'),
-                            aic = $('div#animation div.panel-body'),
-                            mi = $('<img />', {
-                                id: 'maze' + id,
-                                src: '/show/' + id,
-                                alt: 'maze image',
-                                style: "width:100%"
-                            }),
-                            si = $('<img />', {
-                                id: 'solved' + id,
-                                src: '/solved/' + id,
-                                alt: 'solved maze image',
-                                style: "width:100%"
-                            }),
-                            ai = $('<img />', {
-                                id: 'animation' + id,
-                                src: '/animation/' + id,
-                                alt: 'solved animation maze image',
-                                style: "width:100%"
-                            })
-                            ;
-
-                    mic.empty();
-                    sic.empty();
-                    aic.empty();
-
-                    mi.appendTo(mic);
-                    si.appendTo(sic);
-                    ai.appendTo(aic);
-
-                    mazeOverview.show()
-                };
-
-        mazeOverview.hide();
 
         $('div.modal-footer button.btn.btn-primary').on('click', function(e){
             e.preventDefault();
-            connection.send(form.serialize());
-            form.clear();
+            form.submit();
             $('#MazeModal').modal('hide');
-
         });
+
+        $(document).on("click", "a.solve", function(e) {
+            e.preventDefault();
+            var id = $(this).attr('data-play');
+            var view = new DataView(new ArrayBuffer(5));
+            view.setInt8(0, 4);
+            view.setUint32(1, id);
+            connection.send(view);
+        });
+
         $(document).on("click", "a.list-group-item.show-image", function(e) {
             e.preventDefault();
-            var view = new DataView(new ArrayBuffer(5));
-            view.setInt8(0, 3);
-            view.setUint32(1, $(this).attr('id'));
-            connection.send(view);
+            var id = $(this).attr('id');
+            menu.click(id);
+
+            if (images.has(id)){
+                images.show(id)
+            } else {
+                var view = new DataView(new ArrayBuffer(5));
+                view.setInt8(0, 3);
+                view.setUint32(1, id);
+                connection.send(view);
+            }
         });
     })
 </script>

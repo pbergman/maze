@@ -122,9 +122,9 @@ func (w Walker) DrawImage() draw.Image {
 	maze := w.m.DrawImage()
 	ratio := int(w.m.I.GetRatio())
 	for _, t := range w.r.t {
-		rect := image.Rect(t.x*ratio, t.y*ratio, t.x*ratio+int(w.m.I.GetRatio()), t.y*ratio+int(w.m.I.GetRatio()))
+		rect := image.Rect(t.X*ratio, t.Y*ratio, t.X*ratio+int(w.m.I.GetRatio()), t.Y*ratio+int(w.m.I.GetRatio()))
 		switch true {
-		case OK == (OK & t.t):
+		case OK == (OK & t.T):
 			draw.Draw(maze, rect, &image.Uniform{color.RGBA{255, 0, 0, 150}}, image.ZP, draw.Src)
 		default:
 			draw.Draw(maze, rect, &image.Uniform{color.RGBA{133, 133, 133, 150}}, image.ZP, draw.Src)
@@ -148,9 +148,9 @@ func (w Walker) CreateAnimationImage(file *os.File) {
 
 	if len(w.r.t) <= 1000 {
 		for _, t := range w.r.t {
-			rect := image.Rect(t.x*ratio, t.y*ratio, t.x*ratio+int(w.m.I.GetRatio()), t.y*ratio+int(w.m.I.GetRatio()))
+			rect := image.Rect(t.X*ratio, t.Y*ratio, t.X*ratio+int(w.m.I.GetRatio()), t.Y*ratio+int(w.m.I.GetRatio()))
 			switch true {
-			case OK == (OK & t.t):
+			case OK == (OK & t.T):
 				draw.Draw(maze, rect, &image.Uniform{color.RGBA{255, 0, 0, 150}}, image.ZP, draw.Src)
 			default:
 				draw.Draw(maze, rect, &image.Uniform{color.RGBA{133, 133, 133, 150}}, image.ZP, draw.Src)
@@ -163,9 +163,9 @@ func (w Walker) CreateAnimationImage(file *os.File) {
 		}
 	} else {
 		for i := 0; i < len(w.r.t); i++ {
-			rect := image.Rect(w.r.t[i].x*ratio, w.r.t[i].y*ratio, w.r.t[i].x*ratio+int(w.m.I.GetRatio()), w.r.t[i].y*ratio+int(w.m.I.GetRatio()))
+			rect := image.Rect(w.r.t[i].X*ratio, w.r.t[i].Y*ratio, w.r.t[i].X*ratio+int(w.m.I.GetRatio()), w.r.t[i].Y*ratio+int(w.m.I.GetRatio()))
 			switch true {
-			case OK == (OK & w.r.t[i].t):
+			case OK == (OK & w.r.t[i].Y):
 				draw.Draw(maze, rect, &image.Uniform{color.RGBA{255, 0, 0, 150}}, image.ZP, draw.Src)
 			default:
 				draw.Draw(maze, rect, &image.Uniform{color.RGBA{133, 133, 133, 150}}, image.ZP, draw.Src)
@@ -263,9 +263,9 @@ func (w Walker) String() string {
 
 			if trace := w.r.GetTrace(x, y); trace != nil {
 				switch true {
-				case OK == (OK & trace.t):
+				case OK == (OK & trace.T):
 					buff.Write([]byte{'*'})
-				case VISITED == (VISITED & trace.t):
+				case VISITED == (VISITED & trace.T):
 					buff.Write([]byte{'.'})
 				}
 
@@ -286,4 +286,8 @@ func (w Walker) String() string {
 		buff.Write([]byte{'\n'})
 	}
 	return string(buff.Bytes())
+}
+
+func (w *Walker) GetResult() *TraceablePosition {
+	return w.r
 }

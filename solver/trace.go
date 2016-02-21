@@ -14,9 +14,9 @@ type Position struct {
 }
 
 type Trace struct {
-	x  int       // x position of trace
-	y  int       // y position of trace
-	t  WalkToken // value of position
+	X  int       // x position of trace
+	Y  int       // y position of trace
+	T  WalkToken // value of position
 	tr int       // count of directions
 	s  int       // section id
 }
@@ -37,7 +37,7 @@ func (t *TraceablePosition) GoBack() {
 
 	// search last multi section position with tries left
 	for i, wt := range t.t {
-		if MULTI == (MULTI&wt.t) && OK == (OK&wt.t) && wt.tr > 0 {
+		if MULTI == (MULTI&wt.T) && OK == (OK&wt.T) && wt.tr > 0 {
 			index = i
 		}
 	}
@@ -56,7 +56,7 @@ func (t *TraceablePosition) GoBack() {
 			for i := 0; i < len(t.t); i++ {
 				// remove all ok tokens
 				if inSlice(t.t[i].s, t.s[o:]) {
-					t.t[i].t ^= OK
+					t.t[i].T ^= OK
 				}
 			}
 			t.s = t.s[:o]
@@ -67,7 +67,7 @@ func (t *TraceablePosition) GoBack() {
 	// subtracting counter trying new route
 	t.t[index].tr--
 	// update position with last section position
-	t.y, t.x = t.t[index].y, t.t[index].x
+	t.y, t.x = t.t[index].Y, t.t[index].X
 }
 
 func (t *TraceablePosition) AddTrace(x, y int) {
@@ -88,16 +88,20 @@ func (t *TraceablePosition) AddTraceSection(x, y int, count int) {
 // HasVisited will check if given cordinates are in the trace stack
 func (t *TraceablePosition) HasVisited(x, y int) bool {
 	for _, wt := range t.t {
-		if wt.x == x && wt.y == y {
+		if wt.X == x && wt.Y == y {
 			return true
 		}
 	}
 	return false
 }
 
+func (t *TraceablePosition) GetTraces() []Trace {
+	return t.t;
+}
+
 func (t *TraceablePosition) GetTrace(x, y int) *Trace {
 	for _, wt := range t.t {
-		if wt.x == x && wt.y == y {
+		if wt.X == x && wt.Y == y {
 			return &wt
 		}
 	}
