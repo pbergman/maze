@@ -126,30 +126,37 @@ func handleWebSocketRequest(w http.ResponseWriter, r *http.Request) {
 						} else {
 							http.Error(w, fmt.Sprintf("No maze exist by id %d", int64(binary.BigEndian.Uint32(data[1:]))), 500)
 						}
-					}
-				case 4:
-					if m, ok := mazes[int64(binary.BigEndian.Uint32(data[1:]))]; ok {
+					case 4:
+						if m, ok := mazes[int64(binary.BigEndian.Uint32(data[1:]))]; ok {
 
-						walker := solver.NewWalker(m)
-						walker.Solve()
+							walker := solver.NewWalker(m)
+							walker.Solve()
 
-						ratio := m.I.GetRatio()
-						buf := new(bytes.Buffer)
-						buf.Write([]byte{3}) // type id
-						binary.Write(buf, binary.BigEndian, uint16(ratio))
+							ratio := m.I.GetRatio()
+							buf := new(bytes.Buffer)
+							buf.Write([]byte{3}) // type id
+							binary.Write(buf, binary.BigEndian, binary.BigEndian.Uint32(data[1:]))
+							binary.Write(buf, binary.BigEndian, uint16(ratio))
 
-						for _, t := range walker.GetResult().GetTraces() {
-							binary.Write(buf, binary.BigEndian, uint16(t.X*ratio))
-							binary.Write(buf, binary.BigEndian, uint16(t.Y*ratio))
-							binary.Write(buf, binary.BigEndian, uint8(t.T))
+							for _, t := range walker.GetResult().GetTraces() {
+								binary.Write(buf, binary.BigEndian, uint16(t.X*int(ratio)))
+								binary.Write(buf, binary.BigEndian, uint16(t.Y*int(ratio)))
+								if (solver.OK == (solver.OK & t.T)) {
+									binary.Write(buf, binary.BigEndian, uint8(1))
+								} else {
+									binary.Write(buf, binary.BigEndian, uint8(0))
+								}
+
+							}
+							fmt.Println(buf.Bytes());
+							err := conn.WriteMessage(websocket.BinaryMessage, buf.Bytes())
+							checkHttpError(err, w)
+
+						} else {
+							http.Error(w, fmt.Sprintf("No maze exist by id %d", int64(binary.BigEndian.Uint32(data[1:]))), 500)
 						}
-
-						err := conn.WriteMessage(websocket.BinaryMessage, buf.Bytes())
-						checkHttpError(err, w)
-
-					} else {
-						http.Error(w, fmt.Sprintf("No maze exist by id %d", int64(binary.BigEndian.Uint32(data[1:]))), 500)
 					}
+
 				default:
 					fmt.Println(mt)
 				}

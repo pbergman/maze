@@ -15,6 +15,7 @@ func main() {
 	if !config.Config.Server {
 		cli.App()
 	} else {
+		log.Printf("Server running on :%d", config.Config.Port)
 		log.Fatal(http.ListenAndServe(":"+strconv.Itoa(config.Config.Port), nil))
 	}
 }

@@ -165,7 +165,7 @@ func (w Walker) CreateAnimationImage(file *os.File) {
 		for i := 0; i < len(w.r.t); i++ {
 			rect := image.Rect(w.r.t[i].X*ratio, w.r.t[i].Y*ratio, w.r.t[i].X*ratio+int(w.m.I.GetRatio()), w.r.t[i].Y*ratio+int(w.m.I.GetRatio()))
 			switch true {
-			case OK == (OK & w.r.t[i].Y):
+			case OK == (OK & w.r.t[i].T):
 				draw.Draw(maze, rect, &image.Uniform{color.RGBA{255, 0, 0, 150}}, image.ZP, draw.Src)
 			default:
 				draw.Draw(maze, rect, &image.Uniform{color.RGBA{133, 133, 133, 150}}, image.ZP, draw.Src)

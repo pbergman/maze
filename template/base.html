@@ -108,49 +108,48 @@
 <!-- Latest compiled and minified JavaScript -->
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
 <script type="text/javascript">
-    $(document).ready(function() {
-
-        (function($){
-            $.fn.updateStatus = function() {
-                if (connection.isConnected) {
-                    if ($(this).hasClass("has-error")) {
-                        $(this).removeClass("has-error");
-                    }
-                    if (false === $(this).hasClass("has-success")) {
-                        $(this).addClass("has-success");
-                    }
-                    if ($(this).find("a span.glyphicon").hasClass("glyphicon-question-sign")) {
-                        $(this).find("a span.glyphicon").removeClass("glyphicon-question-sign");
-                    }
-                    if ($(this).find("a span.glyphicon").hasClass("glyphicon-remove")) {
-                        $(this).find("a span.glyphicon").removeClass("glyphicon-remove");
-                    }
-                    if (false === $(this).find("a span.glyphicon").hasClass("glyphicon-ok")) {
-                        $(this).find("a span.glyphicon").addClass("glyphicon-ok");
-                    }
-                    $(this).find("a#list-group-modal").attr("data-toggle", "modal");
-                } else {
-                    if ($(this).hasClass("has-success")) {
-                        $(this).removeClass("has-success");
-                    }
-                    if (false === $(this).hasClass("has-error")) {
-                        $(this).addClass("has-error");
-                    }
-                    if ($(this).find("a span.glyphicon").hasClass("glyphicon-success")) {
-                        $(this).find("a span.glyphicon").removeClass("glyphicon-success");
-                    }
-                    if ($(this).find("a span.glyphicon").hasClass("glyphicon-question-sign")) {
-                        $(this).find("a span.glyphicon").removeClass("glyphicon-question-sign");
-                    }
-                    if (false === $(this).find("a span.glyphicon").hasClass("glyphicon-remove")) {
-                        $(this).find("a span.glyphicon").addClass("glyphicon-remove");
-                    }
-                    $(this).find("a#list-group-modal").attr("data-toggle", "");
+    (function($){
+        $.fn.updateStatus = function(connected) {
+            if (connected) {
+                if ($(this).hasClass("has-error")) {
+                    $(this).removeClass("has-error");
                 }
-                return this;
-            };
-        })(jQuery);
+                if (false === $(this).hasClass("has-success")) {
+                    $(this).addClass("has-success");
+                }
+                if ($(this).find("a span.glyphicon").hasClass("glyphicon-question-sign")) {
+                    $(this).find("a span.glyphicon").removeClass("glyphicon-question-sign");
+                }
+                if ($(this).find("a span.glyphicon").hasClass("glyphicon-remove")) {
+                    $(this).find("a span.glyphicon").removeClass("glyphicon-remove");
+                }
+                if (false === $(this).find("a span.glyphicon").hasClass("glyphicon-ok")) {
+                    $(this).find("a span.glyphicon").addClass("glyphicon-ok");
+                }
+                $(this).find("a#list-group-modal").attr("data-toggle", "modal");
+            } else {
+                if ($(this).hasClass("has-success")) {
+                    $(this).removeClass("has-success");
+                }
+                if (false === $(this).hasClass("has-error")) {
+                    $(this).addClass("has-error");
+                }
+                if ($(this).find("a span.glyphicon").hasClass("glyphicon-success")) {
+                    $(this).find("a span.glyphicon").removeClass("glyphicon-success");
+                }
+                if ($(this).find("a span.glyphicon").hasClass("glyphicon-question-sign")) {
+                    $(this).find("a span.glyphicon").removeClass("glyphicon-question-sign");
+                }
+                if (false === $(this).find("a span.glyphicon").hasClass("glyphicon-remove")) {
+                    $(this).find("a span.glyphicon").addClass("glyphicon-remove");
+                }
+                $(this).find("a#list-group-modal").attr("data-toggle", "");
+            }
+            return this;
+        };
+    })(jQuery);
 
+    $(document).ready(function() {
         function ImageContainer(id, canvas){
             this.id = id;
             this.canvas = canvas;
@@ -160,15 +159,27 @@
         ImageContainer.prototype.appendTo = function(e){
             this.$template.attr("id", "image" + this.id);
             this.$template.find(".row:eq(0)").append($('<a >', {
-                text: "Solve",
+                text: "Solve ",
                 href: "#",
-                class: "solve",
+                style: "padding-left:10px",
+                class: "btn btn-default btn-sm solve",
                 'data-play': this.id
             }).append($('<span />', {
                 class: 'glyphicon glyphicon-play',
                 'aria-hidden': true
             })));
-            this.$template.find(".row:eq(1)").append(this.canvas);
+            this.$template.find(".row:eq(0)").append($('<a >', {
+                text: "Reset ",
+                href: "#",
+                style: "padding-left:10px",
+                "data-id": this.id,
+                class: "btn btn-default btn-sm reset",
+                'data-play': this.id
+            }).append($('<span />', {
+                class: 'glyphicon glyphicon-refresh',
+                'aria-hidden': true
+            })));
+            this.$template.find(".row:eq(1)").append($('<div>', { class: "row"})).append(this.canvas);
             e.append(this.$template)
         };
 
@@ -260,30 +271,36 @@
             }
         })(),
         connection = (function(){
-            var ws, connected = false, connect, reader = new FileReader();
+            var ws, connected = false, connect, reader = new FileReader(), view, id, bytes, canvas, ctx;
             reader.addEventListener("loadend", function() {
                 switch (new Uint8Array(reader.result, 0, 1)[0]) {
                     case 1:
-                        var element = $(String.fromCharCode.apply(null, new Uint8Array(reader.result, 1))).updateStatus();
+                        var element = $(String.fromCharCode.apply(null, new Uint8Array(reader.result, 1))).updateStatus(connection.isConnected());
                         $("div.list-group").replaceWith(element);
                         break;
                     case 2:
-                        var view = new DataView(reader.result, 1, 16),
-                            id = view.getUint32(0);
+                        view = new DataView(reader.result, 1, 16);
+                        id = view.getUint32(0);
 
                         var data = new MazeConfig();
                         data.unserialize(view, 4);
 
-                        var canvas = document.createElement('canvas');
+                        canvas = document.getElementById('c' + id);
+
+                        if (canvas === null) {
+                            canvas = document.createElement('canvas');
+                        }
+
+                        canvas.id     = 'c' + id;
                         canvas.width  = data.width;
                         canvas.height = data.height;
 
-                        var ctx = canvas.getContext('2d');
+                        ctx = canvas.getContext('2d');
                         ctx.fillStyle = 'rgb('+ data.path.r +','+ data.path.g +','+ data.path.b +')';
                         ctx.fillRect(0,0,data.height,data.width);
                         ctx.save();
 
-                        var bytes = new DataView(reader.result, 17);
+                        bytes = new DataView(reader.result, 17);
 
                         for (var i = 0; i < bytes.byteLength/2; i += 2) {
                             ctx.fillStyle = 'rgb('+ data.wall.r +','+ data.wall.g +','+ data.wall.b +')';
@@ -298,8 +315,39 @@
                         menu.click(id);
                         images.show(id);
                         break;
-                    case 4:
+                    case 3:
+                        view = new DataView(reader.result, 1, 7);
+                        id = view.getUint32(0);
+                        var ratio = view.getUint16(4), c;
+                        canvas = document.getElementById('c' + id);
+                        ctx = canvas.getContext('2d');
+                        bytes = new DataView(reader.result, 7);
+                        i = 0;
+                        c = 0;
+                        requestAnimationFrame(function draw(){
+                            if (i < bytes.byteLength) {
+                                ctx.fillStyle = 'rgb(190,190,190)';
+                                ctx.fillRect(bytes.getUint16(i), bytes.getUint16(i+2),  ratio,  ratio);
+                                ctx.save();
+                                i += 5;
+                                requestAnimationFrame(draw)
+                            }
+                            else {
+                                if (c <= bytes.byteLength) {
 
+                                    try{
+                                        do {
+                                            c += 5;
+                                        } while(bytes.getUint8(c + 4) === 0);
+
+                                        ctx.fillStyle = 'rgb(255,0,0)';
+                                        ctx.fillRect(bytes.getUint16(c), bytes.getUint16(c+2),  ratio,  ratio);
+                                        ctx.save();
+                                        requestAnimationFrame(draw)
+                                    } catch (e) {}
+                                }
+                            }
+                        });
                         break;
 
                 }
@@ -341,7 +389,7 @@
         })()
         ;
 
-        $('div.list-group').updateStatus();
+        $('div.list-group').updateStatus(connection.isConnected());
 
         $('div.modal-footer button.btn.btn-primary').on('click', function(e){
             e.preventDefault();
@@ -357,7 +405,16 @@
             view.setUint32(1, id);
             connection.send(view);
         });
+        $(document).on("click", "a.reset", function(e) {
+            var id = $(this).attr('data-id'),
+                view = new DataView(new ArrayBuffer(5)),
+                $ic = $("#image" + id);
 
+            $ic.remove();
+            view.setInt8(0, 3);
+            view.setUint32(1, id);
+            connection.send(view);
+        });
         $(document).on("click", "a.list-group-item.show-image", function(e) {
             e.preventDefault();
             var id = $(this).attr('id');
