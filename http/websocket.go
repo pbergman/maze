@@ -148,7 +148,6 @@ func handleWebSocketRequest(w http.ResponseWriter, r *http.Request) {
 								}
 
 							}
-							fmt.Println(buf.Bytes());
 							err := conn.WriteMessage(websocket.BinaryMessage, buf.Bytes())
 							checkHttpError(err, w)
 
